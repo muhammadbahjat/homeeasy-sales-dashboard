@@ -1,2 +1,10 @@
 streamlitenv  # Ignore Streamlit environment files
 .devcontainer  # Ignore Visual Studio Code devcontainer files
+streamlitenv
+
+
+
+
+streamlit.py
+
+__pycache__
