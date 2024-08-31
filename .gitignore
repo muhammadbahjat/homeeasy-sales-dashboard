@@ -1,1 +1,2 @@
-streamlitenv   # Ignore Streamlit environment files
+streamlitenv  # Ignore Streamlit environment files
+.devcontainer  # Ignore Visual Studio Code devcontainer files
