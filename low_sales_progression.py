@@ -23,7 +23,7 @@ from datetime import datetime
 #             ORDER BY textmessage.created ASC
 #         '''
 #         cursor.execute(query, (client_id,))
-#         messages_raw = cursor.fetchall()
+#         messages_raw = cur.fetchall()
 
 #         messages = [
 #             f"[{msg[-1]}] {'Client' if msg[3] == 'Received' else 'Sales Rep'}: {msg[2]}"
@@ -40,6 +40,7 @@ from datetime import datetime
 
 def show_low_sales_progression():
     st.title("Low Sales Progression Report")
+    
     db_params = {
         'dbname': st.secrets["database"]["DB_NAME"],
         'user': st.secrets["database"]["DB_USER"],
@@ -47,11 +48,9 @@ def show_low_sales_progression():
         'host': st.secrets["database"]["DB_HOST"],
         'port': st.secrets["database"]["DB_PORT"]
     }
-
     # Employee IDs to filter
     employee_ids = [378, 375, 356, 373, 333, 173]
 
-    # Query to fetch clients who haven't progressed beyond stage 3 in the last 24 hours
     fetch_low_progression_clients_query = f"""
     SELECT 
         csp.client_id,
@@ -120,11 +119,11 @@ def show_low_sales_progression():
             #     key=f"messages_{row['client_id']}_{idx}"  # Unique key based on client_id and index
             # )
 
-    if st.button('Show Data / Refresh Data'):
-        today = datetime.today().strftime('%Y-%m-%d')
-        st.markdown(f"**DATE: {today}** (This report contains data from the last 24 hours)")
+    # The "Show Data / Refresh Data" button is not needed since the page refreshes automatically
+    today = datetime.today().strftime('%Y-%m-%d')
+    st.markdown(f"**DATE: {today}** (This report contains data from the last 24 hours)")
 
-        low_progression_clients_data = fetch_data(fetch_low_progression_clients_query)
+    low_progression_clients_data = fetch_data(fetch_low_progression_clients_query)
 
-        if low_progression_clients_data is not None:
-            display_low_progression_clients(low_progression_clients_data)
+    if low_progression_clients_data is not None:
+        display_low_progression_clients(low_progression_clients_data)

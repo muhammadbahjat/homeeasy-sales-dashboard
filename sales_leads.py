@@ -2,7 +2,7 @@ import psycopg2
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-
+from datetime import datetime
 def show_sales_leads():
     st.title("Sales Leads Monitoring")
 
@@ -13,7 +13,6 @@ def show_sales_leads():
         'host': st.secrets["database"]["DB_HOST"],
         'port': st.secrets["database"]["DB_PORT"]
     }
-
     fetch_max_stages_query = """
     WITH StageHistory AS (
         SELECT 
@@ -332,96 +331,99 @@ def show_sales_leads():
                 connection.close()
 
     # Add a refresh button
-    if st.button('Show Data / Refresh Data'):
-        # Fetch the average time difference for clients in stage 8
-        avg_time_diff_hours = fetch_average_time_diff()
+    # if st.button('Show Data / Refresh Data'):
+    # Fetch the average time difference for clients in stage 8
+    
+    st.markdown(f"**DATE: {datetime.today().strftime('%Y-%m-%d')}** (This report contains data from the last 24 hours)")
 
-        max_stage = fetch_max_stage()    # Fetch data for the client stage progression report
-        dynamic_query = fetch_dynamic_stages_query(max_stage)
-        data = fetch_data(dynamic_query)
+    avg_time_diff_hours = fetch_average_time_diff()
 
-        # Rename columns to "First_Stage_Recorded", "Second_Stage_Recorded", etc.
-        rename_columns = {
-            'STAGE_1_NAME': 'First_Recorded',
-            'TIME_ENTERED_STAGE_1': 'Time_Entered_First_Recorded',
-            'STAGE_2_NAME': 'Second_Recorded',
-            'TIME_ENTERED_STAGE_2': 'Time_Entered_Second_Recorded',
-            'STAGE_3_NAME': 'Third_Recorded',
-            'TIME_ENTERED_STAGE_3': 'Time_Entered_Third_Recorded',
-            'STAGE_4_NAME': 'Fourth_Recorded',
-            'TIME_ENTERED_STAGE_4': 'Time_Entered_Fourth_Recorded',
-            'STAGE_5_NAME': 'Fifth_Recorded',
-            'TIME_ENTERED_STAGE_5': 'Time_Entered_Fifth_Recorded',
-            'STAGE_6_NAME': 'Sixth_Recorded',
-            'TIME_ENTERED_STAGE_6': 'Time_Entered_Sixth_Recorded',
-            'STAGE_7_NAME': 'Seventh_Recorded',
-            'TIME_ENTERED_STAGE_7': 'Time_Entered_Seventh_Recorded',
-            'STAGE_8_NAME': 'Eighth_Recorded',
-            'TIME_ENTERED_STAGE_8': 'Time_Entered_Eighth_Recorded',
-            'STAGE_9_NAME': 'Ninth_Recorded',
-            'TIME_ENTERED_STAGE_9': 'Time_Entered_Ninth_Recorded'
-        }
+    max_stage = fetch_max_stage()    # Fetch data for the client stage progression report
+    dynamic_query = fetch_dynamic_stages_query(max_stage)
+    data = fetch_data(dynamic_query)
 
-        # Apply the renaming to the DataFrame
-        if data is not None:
-            data.rename(columns=rename_columns, inplace=True)
+    # Rename columns to "First_Stage_Recorded", "Second_Stage_Recorded", etc.
+    rename_columns = {
+        'STAGE_1_NAME': 'First_Recorded',
+        'TIME_ENTERED_STAGE_1': 'Time_Entered_First_Recorded',
+        'STAGE_2_NAME': 'Second_Recorded',
+        'TIME_ENTERED_STAGE_2': 'Time_Entered_Second_Recorded',
+        'STAGE_3_NAME': 'Third_Recorded',
+        'TIME_ENTERED_STAGE_3': 'Time_Entered_Third_Recorded',
+        'STAGE_4_NAME': 'Fourth_Recorded',
+        'TIME_ENTERED_STAGE_4': 'Time_Entered_Fourth_Recorded',
+        'STAGE_5_NAME': 'Fifth_Recorded',
+        'TIME_ENTERED_STAGE_5': 'Time_Entered_Fifth_Recorded',
+        'STAGE_6_NAME': 'Sixth_Recorded',
+        'TIME_ENTERED_STAGE_6': 'Time_Entered_Sixth_Recorded',
+        'STAGE_7_NAME': 'Seventh_Recorded',
+        'TIME_ENTERED_STAGE_7': 'Time_Entered_Seventh_Recorded',
+        'STAGE_8_NAME': 'Eighth_Recorded',
+        'TIME_ENTERED_STAGE_8': 'Time_Entered_Eighth_Recorded',
+        'STAGE_9_NAME': 'Ninth_Recorded',
+        'TIME_ENTERED_STAGE_9': 'Time_Entered_Ninth_Recorded'
+    }
 
-        # Display the data in a Streamlit table
-        if data is not None:
-            st.dataframe(data)
-            st.write(f"Total records fetched: {len(data)}")
+    # Apply the renaming to the DataFrame
+    if data is not None:
+        data.rename(columns=rename_columns, inplace=True)
 
-        # Fetch the latest stage each client is in for the summary
-        latest_stage_data = fetch_data(fetch_latest_stage_query)
+    # Display the data in a Streamlit table
+    if data is not None:
+        st.dataframe(data)
+        st.write(f"Total records fetched: {len(data)}")
 
-        # Display the summarized data in a table
-        if latest_stage_data is not None:
-            stage_summary = latest_stage_data.groupby('latest_stage_name').size().reset_index(name='Number of Clients')
-            st.subheader("Summary of Clients in Latest Stage")
-            st.table(stage_summary)
-            
-            # Create a bar chart to visualize the summary
-            st.subheader("Bar Chart of Clients in Latest Stage")
-            fig, ax = plt.subplots()
-            ax.bar(stage_summary['latest_stage_name'], stage_summary['Number of Clients'])
-            ax.set_xlabel('Stage')
-            ax.set_ylabel('Number of Clients')
-            ax.set_title('Clients in Latest Stage')
-            plt.xticks(rotation=45, ha='right')
-            st.pyplot(fig)
+    # Fetch the latest stage each client is in for the summary
+    latest_stage_data = fetch_data(fetch_latest_stage_query)
+
+    # Display the summarized data in a table
+    if latest_stage_data is not None:
+        stage_summary = latest_stage_data.groupby('latest_stage_name').size().reset_index(name='Number of Clients')
+        st.subheader("Summary of Clients in Latest Stage")
+        st.table(stage_summary)
         
-        # Fetch employee-wise client stage information
-        employee_stage_data = fetch_data(fetch_employee_stage_query)
-
-        if employee_stage_data is not None:
-            st.subheader("Client Stages by Employee")
-            
-            # Display the data in a tabular form
-            st.dataframe(employee_stage_data)
-
-        # Create a bar chart to visualize the number of clients per employee in different stages
-        st.subheader("Bar Chart of Client Stages by Employee")
-        fig, ax = plt.subplots(figsize=(14, 8))  # Increase the figure size
-        employee_stage_summary = employee_stage_data.groupby(['employee_name', 'current_stage_name']).size().unstack().fillna(0)
-        employee_stage_summary.plot(kind='bar', stacked=True, ax=ax)
-        ax.set_xlabel('Employee', fontsize=12)
-        ax.set_ylabel('Number of Clients', fontsize=12)
-        ax.set_title('Client Stages by Employee', fontsize=16)
-        plt.xticks(rotation=45, ha='right', fontsize=10)  # Adjust the rotation and font size for x-axis labels
-        plt.yticks(fontsize=10)  # Adjust the font size for y-axis labels
+        # Create a bar chart to visualize the summary
+        st.subheader("Bar Chart of Clients in Latest Stage")
+        fig, ax = plt.subplots()
+        ax.bar(stage_summary['latest_stage_name'], stage_summary['Number of Clients'])
+        ax.set_xlabel('Stage')
+        ax.set_ylabel('Number of Clients')
+        ax.set_title('Clients in Latest Stage')
+        plt.xticks(rotation=45, ha='right')
         st.pyplot(fig)
+    
+    # Fetch employee-wise client stage information
+    employee_stage_data = fetch_data(fetch_employee_stage_query)
+
+    if employee_stage_data is not None:
+        st.subheader("Client Stages by Employee")
         
-        # Classify clients as NORMAL or NOT NORMAL based on the calculated average time difference
-        classify_clients_query = classify_clients_query_template.format(avg_time_diff_hours=avg_time_diff_hours)
-        classified_clients_data = fetch_data(classify_clients_query)
+        # Display the data in a tabular form
+        st.dataframe(employee_stage_data)
 
-        if classified_clients_data is not None:
-            st.subheader("NORMAL CLIENTS")
-            normal_clients = classified_clients_data[classified_clients_data['client_status'] == 'NORMAL CLIENT']
-            st.dataframe(normal_clients)
-            st.write(f"Total NORMAL CLIENTS: {len(normal_clients)}")
+    # Create a bar chart to visualize the number of clients per employee in different stages
+    st.subheader("Bar Chart of Client Stages by Employee")
+    fig, ax = plt.subplots(figsize=(14, 8))  # Increase the figure size
+    employee_stage_summary = employee_stage_data.groupby(['employee_name', 'current_stage_name']).size().unstack().fillna(0)
+    employee_stage_summary.plot(kind='bar', stacked=True, ax=ax)
+    ax.set_xlabel('Employee', fontsize=12)
+    ax.set_ylabel('Number of Clients', fontsize=12)
+    ax.set_title('Client Stages by Employee', fontsize=16)
+    plt.xticks(rotation=45, ha='right', fontsize=10)  # Adjust the rotation and font size for x-axis labels
+    plt.yticks(fontsize=10)  # Adjust the font size for y-axis labels
+    st.pyplot(fig)
+    
+    # Classify clients as NORMAL or NOT NORMAL based on the calculated average time difference
+    classify_clients_query = classify_clients_query_template.format(avg_time_diff_hours=avg_time_diff_hours)
+    classified_clients_data = fetch_data(classify_clients_query)
 
-            st.subheader("NOT NORMAL CLIENTS")
-            not_normal_clients = classified_clients_data[classified_clients_data['client_status'] == 'NOT NORMAL CLIENT']
-            st.dataframe(not_normal_clients)
-            st.write(f"Total NOT NORMAL CLIENTS: {len(not_normal_clients)}")
+    if classified_clients_data is not None:
+        st.subheader("NORMAL CLIENTS")
+        normal_clients = classified_clients_data[classified_clients_data['client_status'] == 'NORMAL CLIENT']
+        st.dataframe(normal_clients)
+        st.write(f"Total NORMAL CLIENTS: {len(normal_clients)}")
+
+        st.subheader("NOT NORMAL CLIENTS")
+        not_normal_clients = classified_clients_data[classified_clients_data['client_status'] == 'NOT NORMAL CLIENT']
+        st.dataframe(not_normal_clients)
+        st.write(f"Total NOT NORMAL CLIENTS: {len(not_normal_clients)}")

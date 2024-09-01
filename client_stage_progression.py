@@ -14,6 +14,7 @@ def show_client_stage_progression():
         'host': st.secrets["database"]["DB_HOST"],
         'port': st.secrets["database"]["DB_PORT"]
     }
+    
     fetch_leads_stage_4_and_beyond_query = """
         SELECT 
             csp.client_id,
@@ -138,24 +139,24 @@ def show_client_stage_progression():
         pivot_df = pivot_df.rename(columns={4: 'Stage 4: Property Touring', 5: 'Stage 5: Property Tour and Feedback', 6: 'Stage 6: Application and Approval', 7: 'Stage 7: Post-Approval and Follow-Up', 8: 'Stage 8: Commission Collection'})
         st.dataframe(pivot_df)
 
-    if st.button('Show Data / Refresh Data'):
-        today = datetime.today().strftime('%Y-%m-%d')
-        st.markdown(f"**DATE: {today}** (This report contains data from the last 24 hours)")
+    # The "Show Data / Refresh Data" button is not needed since the page refreshes automatically
+    today = datetime.today().strftime('%Y-%m-%d')
+    st.markdown(f"**DATE: {today}** (This report contains data from the last 24 hours)")
 
-        leads_data = fetch_data(fetch_leads_stage_4_and_beyond_query)
+    leads_data = fetch_data(fetch_leads_stage_4_and_beyond_query)
 
-        if leads_data is not None:
-            st.subheader("Leads in Property Touring and Beyond")
-            st.dataframe(leads_data)
-            st.write(f"Total leads in Property Touring and beyond: {len(leads_data)}")
-            
-            plot_leads_stage_4_and_beyond(leads_data)
-            create_employee_stage_table(leads_data)
+    if leads_data is not None:
+        st.subheader("Leads in Property Touring and Beyond")
+        st.dataframe(leads_data)
+        st.write(f"Total leads in Property Touring and beyond: {len(leads_data)}")
+        
+        plot_leads_stage_4_and_beyond(leads_data)
+        create_employee_stage_table(leads_data)
 
-        sales_reps_data = fetch_data(fetch_sales_reps_count_query)
+    sales_reps_data = fetch_data(fetch_sales_reps_count_query)
 
-        if sales_reps_data is not None:
-            st.subheader("Sales Reps Moving Leads to Property Touring and Beyond")
-            st.dataframe(sales_reps_data)
-            st.write(f"Total entries: {len(sales_reps_data)}")
-            plot_sales_reps_moving_leads(sales_reps_data)
+    if sales_reps_data is not None:
+        st.subheader("Sales Reps Moving Leads to Property Touring and Beyond")
+        st.dataframe(sales_reps_data)
+        st.write(f"Total entries: {len(sales_reps_data)}")
+        plot_sales_reps_moving_leads(sales_reps_data)
