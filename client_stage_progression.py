@@ -19,8 +19,8 @@ def show_client_stage_progression():
             csp.client_id,
             c.fullname AS client_name,
             e.fullname AS employee_name,
-            csp.current_stage,
-            csp.created_on AS time_entered_stage,
+            MAX(csp.current_stage) AS current_stage,
+            MAX(csp.created_on) AS time_entered_stage,
             CONCAT('https://services.followupboss.com/2/people/view/', csp.client_id) AS followup_boss_link
         FROM 
             public.client_stage_progression csp
@@ -31,9 +31,11 @@ def show_client_stage_progression():
         WHERE 
             csp.current_stage >= 4
             AND csp.created_on >= NOW() - INTERVAL '24 hours'
+        GROUP BY 
+            csp.client_id, c.fullname, e.fullname
         ORDER BY 
             csp.client_id;
-        """
+    """
 
     fetch_sales_reps_count_query = """
     WITH latest_stage_progression AS (
